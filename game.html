@@ -1,0 +1,293 @@
+<html>
+<head>
+	<meta charset="utf-8" />
+<title>TETRIS</title>
+<!-- DOCUMENTATION https://github.com/Aerolab/blockrain.js/ -->
+<!-- The stylesheet should go in the <head>, or be included in your CSS -->
+<link rel="stylesheet" href="blockrain_custom.css">
+<style>
+body{ margin:0 auto; background-color: #333;}
+button {
+  border: none;
+  color: white;
+  padding: 0px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 20px;
+  margin-top: 3px;
+  margin-bottom: 3px;
+  cursor: pointer;
+  height: 15%;
+  display: block;
+  width: 100%;
+}
+button img {height: 50px;}
+#level, #record{
+  background-color: #FFF; 
+  font-family: "Lucida Console", Courier, monospace;
+  font-size: 15px;
+  margin-top: 3px;
+  margin-bottom: 3px;
+  width: 100%;
+  max-height:9%;
+  padding-left:3px;
+  text-transform:capitalize;
+}
+.rotate{ background-color: #ccccb3; }
+.arrow{ background-color: #999966; }
+.command{ background-color: #4d4d33; }
+#left, #rleft, #right, #rright{height: 35%;}
+#pause, #down {height: 22%;}
+</style>
+<!-- jQuery and Blockrain.js -->
+<script src="jquery.js"></script>
+<script src="blockrain.jquery.js"></script>
+</head>
+<body>
+<div class="control" style="float:left; display:block; width:17%; height:100%; valign:bottom;">
+	<div id='level'>Lv. 1 yellow</div> 
+	<button class='rotate' id='rleft'><img src='assets/control/rotate_left.png' /></button>
+	<button class='arrow' id='left'><img src='assets/control/left.png' /></button>
+	<button class='command' id='pause'><img src='assets/control/pause.png' /></button>
+</div>
+<div class="game" style="width:66%; height:100%;float:left; display:block;"></div>
+<div class="control" style="float:left; display:block; width:17%; height:100%; valign:bottom;">
+	<div id='record'>Record 0</div> 
+	<button class='rotate' id='rright'><img src='assets/control/rotate_right.png'></button>
+	<button class='arrow' id='right'><img src='assets/control/right.png' /></button>
+	<button class='command' id='down'><img src='assets/control/down.png' /></button>
+</div>
+<div style="clear:both;"></div>
+<script>
+	function debugLocalStorage(){
+		console.log("***** START debugLocalStorage *****");
+		for (var i = 0; i < localStorage.length; i++){
+		  console.log(i + ") [localStorage] chiave: " + localStorage.key(i) + " - valore: " + localStorage.getItem(localStorage.key(i)));
+		}
+		console.log("*****  END debugLocalStorage  *****");
+	}
+	//CHECK LOGIN IS OK:
+    var auth = localStorage.getItem("auth");
+    var token = localStorage.getItem("token");
+    var login = localStorage.getItem("login");
+    if (auth.localeCompare("OK")!=0){
+    	window.location = "index.html";
+    }
+    debugLocalStorage();
+	//GLOBAL VALUE FOR THE GAME
+	var _tot_lines = 0;
+	var _new_speed = 10;
+	var _level = 1;
+	var _theme = ['yellow','yellow','green','blu','red','orange','violet','brown','candy','mono','vim',
+	                       'yellow','green','blu','red','orange','violet','brown','candy','mono','vim']
+	$(document).ready(function() {
+	    console.log( "ready!" );
+	    //record
+	    var record = 0;
+	    if (localStorage.getItem("record_points")!=null)
+	    	record = localStorage.getItem("record_points");
+	    $('#record').html("Record " + record);
+	    // $('.game').blockrain();
+	    $('.game').blockrain(
+		 { 
+			showFieldOnStart: true,
+			onGameOver: function(score){
+				show_reward(score);
+			},
+			onLine: function(lines, scoreIncrement, score){
+				console.log("Lines: " + lines + " - Score: " + scoreIncrement +" - Total Points: "+ score);
+				_tot_lines += lines
+				switch(lines) {
+				  case 1:
+					var audio = new Audio('assets/audio/lineClear.mp3');
+	                audio.play();
+				    break;
+				  case 2:
+					var audio = new Audio('assets/audio/lineClear.mp3');
+	                audio.play();
+				    break;
+				  case 3:
+					var audio = new Audio('assets/audio/collapse.mp3');
+	                audio.play();
+				    break;
+				  case 4:
+					var audio = new Audio('assets/audio/tetris.mp3');
+	                audio.play();
+				    break;
+				  default:
+				    break;
+				} 
+				//CHANGE LEVEL!
+				if (_tot_lines>=10){
+					_tot_lines += -10;
+					_new_speed += 3;
+					_level += 1;
+					$('.game').blockrain({ speed: _new_speed });
+					$('.game').blockrain( 'theme', _theme[_level] );
+					var audio = new Audio('assets/audio/levelUp.mp3');
+	                audio.play();
+	                $('#level').html(" Lv. " + _level + " " + _theme[_level] );
+				}
+				console.log("Level: " + _level + " - Lines: " + _tot_lines + " - Speed: "  +_new_speed);
+			},
+			onPlaced: function(){
+				var audio = new Audio('assets/audio/lock.mp3');
+                audio.play();
+			},
+		 });
+	});
+
+	function show_reward(score){
+		alert("Your score is: " + score);
+		console.log("Your score is: " + score);
+		//RESET VALUE OF GLOBAL VARIABLE.
+	 	_tot_lines = 0;
+	 	_new_speed = 10;
+	 	_level = 1;
+		$('.game').blockrain({ speed: _new_speed });
+		$('.game').blockrain( 'theme', _theme[_level] );
+	    $('#level').html(" Lv. " + _level + " " + _theme[_level] );
+	    var record = localStorage.getItem("record_points");
+	    //SE IL PUNTEGGIO ATTUALE > DI RECORD AGGIORNO RECORD
+	    if (score>record){
+	    	$('#record').html("Record " + score);
+	    }
+        var email = localStorage.getItem("email");
+        var psw = localStorage.getItem("psw");
+		console.log("EMAIL=["+email+"]");
+        console.log("PSW=["+psw+"]");
+        //http://www.linkin.it/Projects/TETRIS/TetrisPoints.php?email=simone.tonni@gmail.com&psw=tonni&points=100
+        $.ajax({    url : "http://www.linkin.it/Projects/TETRIS/TetrisPoints.php",
+          cache : false,
+          dataType : "json",
+          data : { email : email, psw: psw, points: score},
+          success: console.log('Update Points Success!'),
+          error: console.log('Update Points ERROR!')
+        }); 
+	}
+
+
+    // Pause
+    $( "#pause" ).click(function() {
+    	var html = $( "#pause" ).html();
+		console.log( html );
+		var pause_img ='<img src="assets/control/pause.png">';
+		var resume_img ='<img src="assets/control/resume.png">';
+    	if (html === pause_img ){
+    		//$("#myButton").html("Button New Text");
+    		$('#pause').html(resume_img);
+  			$('.game').blockrain('pause');
+  			$('#rleft').attr("disabled", true);
+  			$('#rright').attr("disabled", true);
+  			$('#left').attr("disabled", true);
+  			$('#right').attr("disabled", true);
+  			$('#down').attr("disabled", true);
+			var audio = new Audio('assets/audio/hold.mp3');
+		    audio.play();
+    	}
+    	else{
+    		$('#pause').html(pause_img);
+  			$('.game').blockrain('resume');
+  			$('#rleft').attr("disabled", false);
+  			$('#rright').attr("disabled", false);
+  			$('#left').attr("disabled", false);
+  			$('#right').attr("disabled", false);
+  			$('#down').attr("disabled", false);
+			var audio = new Audio('assets/audio/backToBackTetris.mp3');
+		    audio.play();
+    	}
+	});
+
+	//Rotate Right 38
+    $( "#rright" ).click(function() {    
+    	var key = 38;
+    	simulateKey(key);
+		var audio = new Audio('assets/audio/rotate.mp3');
+	    audio.play();
+	});
+
+	//Rotate Left 90
+    $( "#rleft" ).click(function() {    
+    	var key = 90;
+    	simulateKey(key);
+		var audio = new Audio('assets/audio/rotate.mp3');
+	    audio.play();
+	});
+
+	//Right 39
+    $( "#right" ).click(function() {    
+    	var key = 39;
+    	simulateKey(key);
+		var audio = new Audio('assets/audio/move.mp3');
+	    audio.play();
+	});
+
+	//Left 37
+    $( "#left" ).click(function() {    
+    	var key = 37;
+    	simulateKey(key);
+		var audio = new Audio('assets/audio/move.mp3');
+	    audio.play();
+	});
+
+	//Down 40
+    $( "#down" ).click(function() {    
+    	var key = 40;
+    	simulateKey(key);
+		var audio = new Audio('assets/audio/move.mp3');
+	    audio.play();
+	});
+
+function simulateKey (keyCode, type, modifiers) {
+	//QUALSIASI BOTTONE CLICCO BLOCCO PREVENTIVAMENTE l'EVENTO SUL BOTTONE DOWN
+	if (keyCode!=40){
+		var evtName = (typeof(type) === "string") ? "key" + type : "keyup";	
+		var modifier = (typeof(modifiers) === "object") ? modifier : {};
+		var event = document.createEvent("HTMLEvents");
+		event.initEvent(evtName, true, false);
+		event.keyCode = 40 ;
+		for (var i in modifiers) {
+			event[i] = modifiers[i];
+		}
+		document.dispatchEvent(event);
+	}
+	//SIMULO IL CLICK 
+	var evtName = (typeof(type) === "string") ? "key" + type : "keydown";	
+	var modifier = (typeof(modifiers) === "object") ? modifier : {};
+	var event = document.createEvent("HTMLEvents");
+	event.initEvent(evtName, true, false);
+	event.keyCode = keyCode;
+	for (var i in modifiers) {
+		event[i] = modifiers[i];
+	}
+	document.dispatchEvent(event);
+	//SOLO X IL BOTTONE DOWN NO
+	if (keyCode!=40){
+		var evtName = (typeof(type) === "string") ? "key" + type : "keyup";	
+		var modifier = (typeof(modifiers) === "object") ? modifier : {};
+		var event = document.createEvent("HTMLEvents");
+		event.initEvent(evtName, true, false);
+		event.keyCode = keyCode;
+		for (var i in modifiers) {
+			event[i] = modifiers[i];
+		}
+		document.dispatchEvent(event);
+	}
+}
+// Setup some tests
+var onKeyEvent = function (event) {
+	var state = "pressed";
+		if (event.type !== "keypress") {
+		state = event.type.replace("key", "");
+	}
+	console.log("Key with keyCode " + event.keyCode + " is " + state);
+};
+
+document.addEventListener("keypress", onKeyEvent, false);
+document.addEventListener("keydown", onKeyEvent, false);
+document.addEventListener("keyup", onKeyEvent, false);
+
+</script>
+</body>
+</html>

@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+<title>STLOCK Login</title>
+<script src="jquery.js"></script>
+<style> 
+body{
+  margin:0 auto; background-color: #333;
+  font-size: 20px;
+  font-family: "Lucida Console", Courier, monospace;
+}
+.label {
+  width: 100%; 
+  display:block;
+}
+input{
+  border: 1px solid #ccc!important;
+  border-radius: 5px;
+  padding-top: 10px; 
+  padding-bottom: 10px; 
+  padding-left: 10px; 
+  padding-right: 0px;
+  margin-left:10px;
+  font-size: 18px;
+  width: 90%; 
+  display:block;
+}
+.login {
+  color:#FFFFFF;
+  background: #008000;
+  height: 45px;
+  width: 94%; 
+  display:block;
+}
+.reg {
+  color:#FFFFFF;
+  background: #000080;
+  padding-top: 3px; 
+  padding-bottom: 5px; 
+  height: 35px;
+  width: 94%; 
+  display:block;
+}
+.forgot {
+  color:#FFFFFF;
+  background: #5c5c5c;
+  padding-top: 3px; 
+  padding-bottom: 5px; 
+  height: 35px;
+  width: 94%; 
+  display:block;
+}
+.content{
+  text-align: center;
+  border: 1px solid #000;
+  background-color: #FFF;
+}
+#ranking{
+ font-size: 12px;
+}
+</style>
+<script>
+  function debugLocalStorage(){
+    console.log("***** START debugLocalStorage *****");
+    for (var i = 0; i < localStorage.length; i++){
+      console.log(i + ") [localStorage] chiave: " + localStorage.key(i) + " - valore: " + localStorage.getItem(localStorage.key(i)));
+    }
+    console.log("*****  END debugLocalStorage  *****");
+  }
+  function onSuccess(data, status)
+  {
+    console.log("onSuccess");
+    console.log("data.status: "+data.status);
+    console.log("data: "+ JSON.stringify(data));
+    localStorage.setItem("auth", data.auth);
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("login", data.auth);
+    localStorage.setItem("status", data.status);
+    localStorage.setItem("record_points", data.record_points);
+    if (data.auth.localeCompare("OK")==0)
+    {
+      console.log("OK - data.auth: " + data.auth);
+      if (data.status.localeCompare("A")==0)
+      {
+        console.log("OK - data.status: " + data.status);
+        window.location = "game.html";
+      }
+      else
+      {
+        console.log("NOK - data.status: " + data.status);
+        alert("[USER NOT ACTIVE] \n\nplease click the activation link on your mail. (InBox or Spam) \n\n[data.status: " + data.status + "]");
+      }
+    }
+    else
+    {
+      console.log("NOK - data.auth: " + data.auth);
+      alert("[LOGIN ERROR] \n\nplease check your mail and password. \n\n[data.auth: " + data.auth + "]");
+    }
+  }
+
+  function onError(data, status)
+  {
+    //var htmlString = "<p>ERRORE Login!</p>";
+    console.log("onError");
+    console.log("data.status: "+data.status);
+    console.log("data: "+ JSON.stringify(data));
+  }   
+
+  function onSuccessReg(data, status)
+  {
+    console.log("onSuccessReg");
+    console.log("data.status: "+data.status);
+    console.log("data: "+ JSON.stringify(data));
+    localStorage.setItem("auth", data.auth);
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("login", data.auth);
+    if (data.auth.localeCompare("OK")==0)
+    {
+      console.log("OK - data.auth: " + data.auth);
+      alert("[REGISTRATION OK] \n\nplease click the activation link on your mail. (InBox or Spam) \n\n[" + data.activation + "]");
+    }
+    else
+    {
+      console.log("NOK - data.auth: " + data.auth);
+      alert("[REGISTRATION ERROR] \n\nplease repeate the registration with email and password. \n\n[error: " + data.token + "]");
+    }
+  }
+
+  function onSuccessForgot(data, status)
+  {
+    console.log("onSuccessForgot");
+    console.log("data.status: "+data.status);
+    console.log("data: "+ JSON.stringify(data));
+    localStorage.setItem("auth", data.auth);
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("login", data.auth);
+    if (data.auth.localeCompare("OK")==0)
+    {
+      console.log("OK - data.auth: " + data.auth);
+      alert("[FORGOT PASSWORD OK] \n\ncheck your mail. (InBox or Spam) \n\n[" + data.activation + "]");
+    }
+    else
+    {
+      console.log("NOK - data.auth: " + data.auth);
+      alert("[FORGOT PASSWORD ERROR] \n\nplease repeate the forgot password with email. \n\n[error: " + data.token + "]");
+    }
+  }
+
+  function onSuccessRank(data, status)
+  {
+    console.log("onSuccessRank");
+    console.log("data: "+ JSON.stringify(data));
+    var html ="<table width='100%' border=0>";
+    for (var i = 0; i < data.length; i++){
+      html += "<tr><td>"+(i+1)+"</td>"+
+              "<td align=left style='padding-left:5px;' >" +data[i].username + 
+              "</td><td align=right style='padding-right:5px;' >" + data[i].record_points + "</td></tr>";
+    }
+    html += "</table>";
+    $("#ranking").html(html);
+  }
+
+  $(document).ready(function() {
+    //recupero la classifica
+    $.ajax({    url : "http://www.linkin.it/Projects/TETRIS/TetrisRanking.php",
+      cache : false,
+      dataType : "json",
+      // data : { email : $("#email").val(), psw: $("#psw").val()},
+      success: onSuccessRank,
+      error: onError
+    });  
+
+    //SETTO I VALORI DI email e password se presenti nel localStorage
+    if(localStorage.getItem("email") != null){
+      var email = localStorage.getItem("email");
+      if(email.length>5){
+         $("#email").val(email);
+      }
+      if(localStorage.getItem("psw") != null){
+         var psw = localStorage.getItem("psw");
+         if(psw.length>1){
+            $("#psw").val(psw);
+         }
+      }
+    }
+
+    var audio = new Audio('assets/audio/tetrisTheme.mp3');
+    audio.play();
+
+    //BOTTONE ACCEDI PER EFFETTUARE IL LOGIN:
+    $("#btn_login").click(function(){
+        if ($("#email").val() != "" && $("#psw").val() != "") {
+            console.log("EMAIL=["+$("#email").val()+"]");
+            console.log("PSW=["+$("#psw").val()+"]");
+            localStorage.setItem("email", $("#email").val() );
+            localStorage.setItem("psw", $("#psw").val() );
+            //http://www.linkin.it/Projects/TETRIS/TetrisLogin.php?email=simone.tonni@gmail.com&psw=tonni
+            $.ajax({    url : "http://www.linkin.it/Projects/TETRIS/TetrisLogin.php",
+              cache : false,
+              dataType : "json",
+              data : { email : $("#email").val(), psw: $("#psw").val()},
+              success: onSuccess,
+              error: onError
+            });            
+        } else {
+            alert("Insert Login and Password for Login!");
+        }
+    });
+
+    //BOTTONE REG PER EFFETTUARE LA REGISTRAZIONE:
+    $("#btn_reg").click(function(){
+        if ($("#email").val() != "" && $("#psw").val() != "") {
+            console.log("EMAIL=["+$("#email").val()+"]");
+            console.log("PSW=["+$("#psw").val()+"]");
+            localStorage.setItem("email", $("#email").val() );
+            localStorage.setItem("psw", $("#psw").val() );
+            //http://www.linkin.it/Projects/TETRIS/TetrisLogin.php?email=simone.tonni@gmail.com&psw=tonni
+            $.ajax({    url : "http://www.linkin.it/Projects/TETRIS/TetrisReg.php",
+              cache : false,
+              dataType : "json",
+              data : { email : $("#email").val(), psw: $("#psw").val()},
+              success: onSuccessReg,
+              error: onError
+            });            
+        } else {
+            alert("Insert Login and Password for Registration!");
+        }
+    });
+
+    //BOTTONE RECUPERARE LA PASSWORD:
+    $("#btn_forgot").click(function(){
+        if ($("#email").val() != "" ) {
+            console.log("EMAIL=["+$("#email").val()+"]");
+            localStorage.setItem("email", $("#email").val() );
+            //http://www.linkin.it/Projects/TETRIS/TetrisForgot.php?email=simone.tonni@gmail.com
+            $.ajax({    url : "http://www.linkin.it/Projects/TETRIS/TetrisForgot.php",
+              cache : false,
+              dataType : "json",
+              data : { email : $("#email").val(), psw: $("#psw").val()},
+              success: onSuccessForgot,
+              error: onError
+            });            
+        } else {
+            alert("Insert Email for Forgt Password!");
+        }
+    });
+
+  });  
+
+  debugLocalStorage();
+
+</script>
+</head>
+<body>
+  <div class="content" style="width:100%; height:600px;" >
+    <h1 style='margin-bottom:0;' >STLOCK</h1>
+    <table width='95%' border=0>
+      <tr>
+        <td width='40%'>
+          <img src="icon.png" alt="Icon" id="icon">
+        </td>
+        <td align=center>
+          <b>RANKING TOP 5</b><br>
+          <div id='ranking'>-</div>
+        </td>
+      </tr>
+    </table>    
+    <form id="callAjaxForm">
+      <div class="container">
+        <label class='label' for="email"><b>E-mail address</b></label>
+        <input type="text" placeholder="Enter Email" name="email" id="email" required>
+        <br>
+        <label class='label' for="psw"><b>Password</b></label>
+        <input type="password" placeholder="Enter Password" name="psw" id="psw" required>
+        <br>
+        <!-- <label> <input type="checkbox" checked="checked" name="remember" /> Remember me </label> -->
+    	<input type='button' class='login' id='btn_login' value='Login' />
+      </div>
+    </form>
+    	<br>
+      <input type='button' class='reg' id='btn_reg' value='Registration' />
+      <br>
+      <input type='button' class='forgot' id='btn_forgot' value='Forgot Password' />
+  </div>
+</body>
+</html>

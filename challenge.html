@@ -221,7 +221,7 @@ input[type=number]::-webkit-outer-spin-button {
 					} 
 					//FINISH CHALLENGE!
 					if (_tot_lines>=10){
-		                finish_challenge();
+		                finish_challenge(score);
 					}
 					console.log("Level: " + _level + " - Lines: " + _tot_lines + " - Speed: "  +_new_speed);
 				},
@@ -234,7 +234,7 @@ input[type=number]::-webkit-outer-spin-button {
 		$('#challenge').hide();
 	});
 
-	function finish_challenge(){
+	function finish_challenge(score){
 		var audio = new Audio('assets/audio/win.mp3');
         audio.play();
 		alert("You WIN! have clear the "+_level+ " level.\nYour score is: " + score);

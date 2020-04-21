@@ -18,6 +18,8 @@
 
     <preference name="permissions"                value="none"/>
 
+    <preference name="phonegap-version" value="cli-6.5.0" />
+
     <!-- Customize your app and platform with the preference element. -->
     <preference name="orientation"                value="portrait" />       <!-- portrait device in verticale | landscape device in orizzontale -->
     <!-- <preference name="orientation"           value="default" /> -->    <!-- all: default means both landscape and portrait are enabled -->

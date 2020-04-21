@@ -1,7 +1,7 @@
 <html>
 <head>
 	<meta charset="utf-8" />
-<title>STLock - Classic</title>
+<title>STLock - Challenge</title>
 <!-- DOCUMENTATION https://github.com/Aerolab/blockrain.js/ -->
 <!-- The stylesheet should go in the <head>, or be included in your CSS -->
 <link rel="stylesheet" href="blockrain_custom.css">
@@ -39,27 +39,122 @@ button img {height: 50px;}
 .command{ background-color: #4d4d33; }
 #left, #rleft, #right, #rright{height: 35%;}
 #pause, #down {height: 22%;}
+
+input[type="number"] {
+  -webkit-appearance: textfield;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+}
+.number-input {
+  border: 2px solid #ddd;
+  display: inline-flex;
+}
+.number-input,
+.number-input * {
+  box-sizing: border-box;
+}
+.number-input button {
+  outline:none;
+  -webkit-appearance: none;
+  background-color: transparent;
+  border: none;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  cursor: pointer;
+  margin: 0;
+  position: relative;
+}
+.number-input button:before,
+.number-input button:after {
+  display: inline-block;
+  position: absolute;
+  content: '';
+  width: 1rem;
+  height: 2px;
+  background-color: #212121;
+  transform: translate(-50%, -50%);
+}
+.number-input button.plus:after {
+  transform: translate(-50%, -50%) rotate(90deg);
+}
+.number-input input[type=number] {
+  max-width: 5rem;
+  padding: .5rem;
+  border: solid #ddd;
+  border-width: 0 2px;
+  font-size: 2rem;
+  height: 3rem;
+  font-weight: bold;
+  text-align: center;
+}
+
+#challenge_choice {float:left;width: 100%; height:100%; background-color: #EEE;margin-top: 3px; padding-top:10px;
+					text-align:center;	font-size: 40px; font-family: "Lucida Console", Courier, monospace;} 
+#challenge {width: 100%;}
+.start {
+  color:#FFFFFF;
+  background: #008000;
+  width: 100%; 
+  display:block;
+  font-size: 40px;
+  padding:20px;
+}
 </style>
 <!-- jQuery and Blockrain.js -->
 <script src="jquery.js"></script>
 <script src="blockrain.jquery.js"></script>
 </head>
 <body>
-<div class="control" style="float:left; display:block; width:17%; height:100%; valign:bottom;">
-	<div id='level'>Lv. 1 yellow</div> 
-	<button class='rotate' id='rleft'><img src='assets/control/rotate_left.png' /></button>
-	<button class='arrow' id='left'><img src='assets/control/left.png' /></button>
-	<button class='command' id='pause'><img src='assets/control/pause.png' /></button>
+<div id='challenge_choice' >
+          <img src="icon.png" alt="Icon" id="icon"><br><br>
+	<b>Choose Challenge</B><br>
+		<br>
+	<table width='100%' border=0>
+		<tr>
+			<td align=center style="font-size: 40px; width:50%;">LEVEL</td>
+			<td><div class="number-input">
+			  <button onclick="this.parentNode.querySelector('input[type=number]').stepDown()" ></button>
+			  <input class="quantity" min="1" max="20" step="1" value="1" id="level_choice" name="level_choice" value="1" type="number">
+			  <button onclick="this.parentNode.querySelector('input[type=number]').stepUp()" class="plus"></button>
+			</div></td>
+		</tr>
+		<tr><td colspan=2>
+			<br><br><br>
+			<button class="start" id="btn_start" >START</button></td></tr>
+	</table>
 </div>
-<div class="game" style="width:66%; height:100%;float:left; display:block;"></div>
-<div class="control" style="float:left; display:block; width:17%; height:100%; valign:bottom;">
-	<div id='record'>Record 0</div> 
-	<button class='rotate' id='rright'><img src='assets/control/rotate_right.png'></button>
-	<button class='arrow' id='right'><img src='assets/control/right.png' /></button>
-	<button class='command' id='down'><img src='assets/control/down.png' /></button>
+
+<div id='challenge' >
+	<div class="control" style="float:left; display:block; width:17%; height:100%; valign:bottom;">
+		<div id='level'>Lv. 1 yellow</div> 
+		<button class='rotate' id='rleft'><img src='assets/control/rotate_left.png' /></button>
+		<button class='arrow' id='left'><img src='assets/control/left.png' /></button>
+		<button class='command' id='pause'><img src='assets/control/pause.png' /></button>
+	</div>
+	<div class="game" style="width:66%; height:100%;float:left; display:block;"></div>
+	<div class="control" style="float:left; display:block; width:17%; height:100%; valign:bottom;">
+		<div id='record'>Record 0</div> 
+		<button class='rotate' id='rright'><img src='assets/control/rotate_right.png'></button>
+		<button class='arrow' id='right'><img src='assets/control/right.png' /></button>
+		<button class='command' id='down'><img src='assets/control/down.png' /></button>
+	</div>
+	<div style="clear:both;"></div>
 </div>
-<div style="clear:both;"></div>
+
 <script>
+	//VARIABILI GLOBALI X CHALLENGE:
+	var _tot_lines = 0;
+	var _new_speed = 10;
+	var _level = 1;
+	var _theme = ['yellow','yellow','green','blu','red','orange','violet','brown','candy','mono','vim',
+	                       'yellow','green','blu','red','orange','violet','brown','candy','mono','vim'];
+
 	function debugLocalStorage(){
 		console.log("***** START debugLocalStorage *****");
 		for (var i = 0; i < localStorage.length; i++){
@@ -80,12 +175,7 @@ button img {height: 50px;}
 	    }
 	}
     debugLocalStorage();
-	//GLOBAL VALUE FOR THE GAME
-	var _tot_lines = 0;
-	var _new_speed = 10;
-	var _level = 1;
-	var _theme = ['yellow','yellow','green','blu','red','orange','violet','brown','candy','mono','vim',
-	                       'yellow','green','blu','red','orange','violet','brown','candy','mono','vim']
+
 	$(document).ready(function() {
 	    console.log( "ready!" );
 	    //record
@@ -93,85 +183,75 @@ button img {height: 50px;}
 	    if (localStorage.getItem("record_points")!=null)
 	    	record = localStorage.getItem("record_points");
 	    $('#record').html("Record " + record);
-	    // $('.game').blockrain();
-	    $('.game').blockrain(
-		 { 
-			showFieldOnStart: true,
-			onGameOver: function(score){
-				show_reward(score);
-			},
-			onLine: function(lines, scoreIncrement, score){
-				console.log("Lines: " + lines + " - Score: " + scoreIncrement +" - Total Points: "+ score);
-				_tot_lines += lines
-				switch(lines) {
-				  case 1:
-					var audio = new Audio('assets/audio/lineClear.mp3');
+	    
+	    if($("#challenge").is(":visible")){
+		    $('.game').blockrain(
+			 { 
+				showFieldOnStart: true,
+				onGameOver: function(score){
+					show_reward(score);
+				},
+				onLine: function(lines, scoreIncrement, score){
+					console.log("Lines: " + lines + " - Score: " + scoreIncrement +" - Total Points: "+ score);
+					_tot_lines += lines;
+					switch(lines) {
+					  case 1:
+						var audio = new Audio('assets/audio/lineClear.mp3');
+		                audio.play();
+					    break;
+					  case 2:
+						var audio = new Audio('assets/audio/lineClear.mp3');
+		                audio.play();
+					    break;
+					  case 3:
+						var audio = new Audio('assets/audio/collapse.mp3');
+		                audio.play();
+					    break;
+					  case 4:
+						var audio = new Audio('assets/audio/tetris.mp3');
+		                audio.play();
+					    break;
+					  default:
+					    break;
+					} 
+					//FINISH CHALLENGE!
+					if (_tot_lines>=10){
+		                finish_challenge();
+					}
+					console.log("Level: " + _level + " - Lines: " + _tot_lines + " - Speed: "  +_new_speed);
+				},
+				onPlaced: function(){
+					var audio = new Audio('assets/audio/lock.mp3');
 	                audio.play();
-				    break;
-				  case 2:
-					var audio = new Audio('assets/audio/lineClear.mp3');
-	                audio.play();
-				    break;
-				  case 3:
-					var audio = new Audio('assets/audio/collapse.mp3');
-	                audio.play();
-				    break;
-				  case 4:
-					var audio = new Audio('assets/audio/tetris.mp3');
-	                audio.play();
-				    break;
-				  default:
-				    break;
-				} 
-				//CHANGE LEVEL!
-				if (_tot_lines>=10){
-					_tot_lines += -10;
-					_new_speed += 3;
-					_level += 1;
-					$('.game').blockrain({ speed: _new_speed });
-					$('.game').blockrain( 'theme', _theme[_level] );
-					var audio = new Audio('assets/audio/levelUp.mp3');
-	                audio.play();
-	                $('#level').html(" Lv. " + _level + " " + _theme[_level] );
-				}
-				console.log("Level: " + _level + " - Lines: " + _tot_lines + " - Speed: "  +_new_speed);
-			},
-			onPlaced: function(){
-				var audio = new Audio('assets/audio/lock.mp3');
-                audio.play();
-			},
-		 });
+				},
+			});
+		} //if visible
+		$('#challenge').hide();
 	});
+
+	function finish_challenge(){
+		var audio = new Audio('assets/audio/win.mp3');
+        audio.play();
+		$('.game').blockrain('gameover');
+	}
 
 	function show_reward(score){
 		alert("Your score is: " + score);
-		console.log("Your score is: " + score);
-		//RESET VALUE OF GLOBAL VARIABLE.
-	 	_tot_lines = 0;
-	 	_new_speed = 10;
-	 	_level = 1;
-		$('.game').blockrain({ speed: _new_speed });
-		$('.game').blockrain( 'theme', _theme[_level] );
-	    $('#level').html(" Lv. " + _level + " " + _theme[_level] );
-	    var record = localStorage.getItem("record_points");
-	    //SE IL PUNTEGGIO ATTUALE > DI RECORD AGGIORNO RECORD
-	    if (score>record){
-	    	$('#record').html("Record " + score);
-	    }
-        var email = localStorage.getItem("email");
-        var psw = localStorage.getItem("psw");
-		console.log("EMAIL=["+email+"]");
-        console.log("PSW=["+psw+"]");
-        //http://www.linkin.it/Projects/TETRIS/TetrisPoints.php?email=simone.tonni@gmail.com&psw=tonni&points=100
-        $.ajax({    url : "http://www.linkin.it/Projects/TETRIS/TetrisPoints.php",
-          cache : false,
-          dataType : "json",
-          data : { email : email, psw: psw, points: score},
-          success: console.log('Update Points Success!'),
-          error: console.log('Update Points ERROR!')
-        }); 
+		console.log("You WIN! have clear the "+_level+ " level.\nYour score is: " + score);
+	    $('#challenge_choice').show();
+	    $('#challenge').hide();
 	}
 
+    $( "#btn_start" ).click(function() {
+	    $('#challenge_choice').hide();
+	    $('#challenge').show();
+	    _level = $('#level_choice').val();
+	    var s = 3 * (_level-1);
+	    _new_speed += s; 
+		$('.game').blockrain({ speed: _new_speed });
+		$('.game').blockrain( 'theme', _theme[_level] );
+		$('#level').html(" Lv. " + _level + " " + _theme[_level] );
+	});
 
     // Pause
     $( "#pause" ).click(function() {

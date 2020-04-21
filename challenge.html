@@ -139,7 +139,7 @@ input[type=number]::-webkit-outer-spin-button {
 	</div>
 	<div class="game" style="width:66%; height:100%;float:left; display:block;"></div>
 	<div class="control" style="float:left; display:block; width:17%; height:100%; valign:bottom;">
-		<div id='record'>Record 0</div> 
+		<div id='record'>Remains: 10 lines</div> 
 		<button class='rotate' id='rright'><img src='assets/control/rotate_right.png'></button>
 		<button class='arrow' id='right'><img src='assets/control/right.png' /></button>
 		<button class='command' id='down'><img src='assets/control/down.png' /></button>
@@ -151,6 +151,7 @@ input[type=number]::-webkit-outer-spin-button {
 	//VARIABILI GLOBALI X CHALLENGE:
 	var _tot_lines = 0;
 	var _new_speed = 10;
+	var _remains = 10;
 	var _level = 1;
 	var _theme = ['yellow','yellow','green','blu','red','orange','violet','brown','candy','mono','vim',
 	                       'yellow','green','blu','red','orange','violet','brown','candy','mono','vim'];
@@ -182,7 +183,7 @@ input[type=number]::-webkit-outer-spin-button {
 	    var record = 0;
 	    if (localStorage.getItem("record_points")!=null)
 	    	record = localStorage.getItem("record_points");
-	    $('#record').html("Record " + record);
+	    $('#record').html("Remains: " + _remains + " lines");
 	    
 	    if($("#challenge").is(":visible")){
 		    $('.game').blockrain(
@@ -194,6 +195,10 @@ input[type=number]::-webkit-outer-spin-button {
 				onLine: function(lines, scoreIncrement, score){
 					console.log("Lines: " + lines + " - Score: " + scoreIncrement +" - Total Points: "+ score);
 					_tot_lines += lines;
+					_remains = _remains - lines;
+					if (_remains<0)
+						_remains = 0;
+	    			$('#record').html("Remains: " + _remains + " lines");
 					switch(lines) {
 					  case 1:
 						var audio = new Audio('assets/audio/lineClear.mp3');
@@ -232,14 +237,18 @@ input[type=number]::-webkit-outer-spin-button {
 	function finish_challenge(){
 		var audio = new Audio('assets/audio/win.mp3');
         audio.play();
+		alert("You WIN! have clear the "+_level+ " level.\nYour score is: " + score);
+		console.log("You WIN! have clear the "+_level+ " level.\nYour score is: " + score);
 		$('.game').blockrain('gameover');
 	}
 
 	function show_reward(score){
-		alert("Your score is: " + score);
-		console.log("You WIN! have clear the "+_level+ " level.\nYour score is: " + score);
+	    if (_remains>0)
+	    	alert("Game Over! haven't clear the "+_level+ " level.\nYour score is: " + score);
 	    $('#challenge_choice').show();
 	    $('#challenge').hide();
+	    _remains =10;
+	    $('#record').html("Remains: " + _remains + " lines");
 	}
 
     $( "#btn_start" ).click(function() {
